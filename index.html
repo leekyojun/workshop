@@ -1,20 +1,138 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yoon's Phonics Builder</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <title>GPT Chatbot (쉬운 영어 버전)</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 30px;
+    }
+    #chat-container {
+      width: 100%;
+      max-width: 600px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      height: 400px;
+      overflow-y: auto;
+    }
+    .message {
+      margin: 5px 0;
+    }
+    .user {
+      text-align: right;
+      color: blue;
+    }
+    .assistant {
+      text-align: left;
+      color: green;
+    }
+    #input-container {
+      display: flex;
+      gap: 10px;
+    }
+    #user-input {
+      flex: 1;
+      padding: 8px;
+    }
+    #send-btn {
+      padding: 8px 16px;
+      cursor: pointer;
+    }
+  </style>
 </head>
 <body>
-    <img src="logo.png" alt="Logo" class="logo">
-    <h1>Yoon's Phonics Builder</h1>
-    <div class="flipbook-container">
-        <div class="slot-container" id="slotContainer"></div>
-        <div class="result" id="wordResult">-</div>
-        <button class="listen-button" id="listenButton" disabled>Listen</button>
-    </div>
-    <div class="copyright">© Yoon's English School. All rights reserved.</div>
-    <script src="script.js"></script> 
+  <h1>GPT Chatbot 데모 (쉬운 영어 학습용)</h1>
+  <div id="chat-container"></div>
+
+  <div id="input-container">
+    <input type="text" id="user-input" placeholder="메시지를 입력하세요 (영어)" />
+    <button id="send-btn">전송</button>
+  </div>
+
+  <script>
+    // OpenAI API에 직접 키를 노출하지 않음.
+    // 대신 Cloudflare Worker URL을 호출
+    const WORKER_URL = "https://calm-boat-2328.kyojun75.workers.dev"; 
+    // 예: "https://my-openai-worker.yourname.workers.dev/chat"
+
+    let messages = [
+      {
+        role: "system", 
+        content: `
+          You are a friendly English tutor. 
+          Please use only simple English words and short sentences. 
+          Explain or paraphrase complex words if the user uses them. 
+          Keep your grammar basic and clear.
+        `
+      }
+    ];
+
+    const chatContainer = document.getElementById("chat-container");
+    const userInput = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+
+    // 메시지를 채팅창에 표시하는 함수
+    function displayMessage(role, text) {
+      const messageElem = document.createElement("div");
+      messageElem.classList.add("message");
+      messageElem.classList.add(role === "user" ? "user" : "assistant");
+      messageElem.textContent = text;
+      chatContainer.appendChild(messageElem);
+      chatContainer.scrollTop = chatContainer.scrollHeight; // 스크롤 자동 이동
+    }
+
+    // 사용자 메시지 전송 함수
+    async function sendMessage() {
+      const userText = userInput.value.trim();
+      if (!userText) return;
+
+      // 사용자 메시지를 화면에 표시
+      displayMessage("user", userText);
+      // 메모리에 대화 내역 추가
+      messages.push({ role: "user", content: userText });
+
+      // 입력 창 비우기
+      userInput.value = "";
+
+      try {
+        const response = await fetch(WORKER_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            // 프롬프트로 사용할 전체 대화 내용을 전달
+            messages: messages
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error("네트워크 응답이 정상적이지 않습니다: " + response.statusText);
+        }
+
+        const data = await response.json();
+        const assistantMessage = data.choices[0].message.content.trim();
+
+        // 화면에 표시
+        displayMessage("assistant", assistantMessage);
+
+        // 대화 내역 업데이트
+        messages.push({ role: "assistant", content: assistantMessage });
+      } catch (error) {
+        console.error("에러 발생:", error);
+        displayMessage("assistant", "에러가 발생했습니다. 콘솔을 확인해주세요.");
+      }
+    }
+
+    // 버튼 클릭 또는 엔터 키로 전송
+    sendBtn.addEventListener("click", sendMessage);
+    userInput.addEventListener("keyup", function(event) {
+      if (event.key === "Enter") {
+        sendMessage();
+      }
+    });
+  </script>
 </body>
 </html>
