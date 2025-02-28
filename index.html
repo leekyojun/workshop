@@ -2,53 +2,180 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>GPT Chatbot (쉬운 영어 버전)</title>
+  <title>GPT Chatbot </title>
   <style>
-    body {
-      font-family: sans-serif;
-      margin: 30px;
+    /* 공통 초기화 */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
-    #chat-container {
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F6F6F7; /* 디자인 참고 */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh; /* 반응형 화면 높이 채우기 */
+      color: #454B58;
+    }
+
+    /* 전체 컨테이너 */
+    .chat-wrapper {
+      width: 95%;
+      max-width: 440px; /* 디자인 참고 */
+      background: #F6F6F7;
+      border-radius: 30px;
+      border: 1px solid #E3E3E3;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    /* 헤더 영역 */
+    .chat-header {
+      position: relative;
+      background-color: #fff;
+      border-bottom: 1px solid #E3E3E3;
+      border-top-left-radius: 30px;
+      border-top-right-radius: 30px;
+      padding: 15px 20px;
+    }
+
+    .chat-header-title {
+      font-size: 20px;
+      color: #667085;
+      text-align: center;
+    }
+
+    /* 구분선 */
+    .divider {
       width: 100%;
-      max-width: 600px;
-      margin-bottom: 20px;
-      border: 1px solid #ccc;
-      padding: 10px;
-      height: 400px;
+      height: 1px;
+      background-color: rgba(102, 112, 133, 0.15);
+      margin: 10px 0;
+    }
+
+    /* 사용자 및 어시스턴트 메시지 컨테이너 */
+    .chat-container {
+      flex: 1;
+      padding: 10px 15px;
       overflow-y: auto;
     }
     .message {
-      margin: 5px 0;
+      margin: 10px 0;
+      max-width: 80%;
+      line-height: 1.4;
+      font-size: 16px;
+      word-wrap: break-word; 
     }
+    /* 사용자 메시지 스타일 */
     .user {
-      text-align: right;
-      color: blue;
-    }
-    .assistant {
+      align-self: flex-end;
+      background-color: #003DF5;
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 10px 0px 10px 10px; 
       text-align: left;
-      color: green;
     }
-    #input-container {
+    /* 어시스턴트 메시지 스타일 */
+    .assistant {
+      align-self: flex-start;
+      background-color: #fff;
+      color: #667085;
+      padding: 10px 12px;
+      border-radius: 0px 10px 10px 10px;
+      border: 1px solid #E3E3E3;
+    }
+
+    /* 입력 영역 */
+    .input-container {
       display: flex;
-      gap: 10px;
+      align-items: center;
+      background: #fff;
+      border-top: 1px solid #E3E3E3;
+      padding: 10px 15px;
     }
-    #user-input {
+
+    .input-container input[type="text"] {
       flex: 1;
+      border: 1px solid #E3E3E3;
+      border-radius: 5px;
+      padding: 10px;
+      font-size: 16px;
+      color: #454B58;
+      outline: none;
+    }
+
+    .send-btn {
+      background-color: #003DF5;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      margin-left: 10px;
+      padding: 10px 16px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: opacity 0.2s ease-in-out;
+    }
+
+    .send-btn:hover {
+      opacity: 0.9;
+    }
+
+    /* 푸터(크레딧) 영역 */
+    .chat-footer {
+      background: rgba(255, 255, 255, 0.5);
+      border-top: 1px solid #E3E3E3;
+      text-align: center;
+      font-size: 14px;
+      color: #667085;
       padding: 8px;
     }
-    #send-btn {
-      padding: 8px 16px;
-      cursor: pointer;
+
+    /* 반응형: 모바일에서 폰트/배치 등 간단 조정 */
+    @media screen and (max-width: 480px) {
+      .chat-header-title {
+        font-size: 18px;
+      }
+      .message {
+        font-size: 14px;
+      }
+      .input-container input[type="text"] {
+        font-size: 14px;
+      }
+      .send-btn {
+        font-size: 14px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>GPT Chatbot 데모 (쉬운 영어 학습용)</h1>
-  <div id="chat-container"></div>
 
-  <div id="input-container">
-    <input type="text" id="user-input" placeholder="메시지를 입력하세요 (영어)" />
-    <button id="send-btn">전송</button>
+  <div class="chat-wrapper">
+    <!-- 상단 헤더 -->
+    <div class="chat-header">
+      <div class="chat-header-title">GPT Chatbot (쉬운 영어 버전)</div>
+      <!-- 필요 시 divider 사용 
+      <div class="divider"></div>
+      -->
+    </div>
+
+    <!-- 채팅 내용 표시 영역 -->
+    <div id="chat-container" class="chat-container"></div>
+
+    <!-- 입력 영역 -->
+    <div class="input-container">
+      <input type="text" id="user-input" placeholder="메시지를 입력하세요 (영어)" />
+      <button id="send-btn" class="send-btn">전송</button>
+    </div>
+
+    <!-- 하단 크레딧 영역(원하시면 숨겨도 됩니다) -->
+    <div class="chat-footer">
+      Powered by <strong>OpenAI</strong>
+    </div>
   </div>
 
   <script>
@@ -134,5 +261,6 @@
       }
     });
   </script>
+
 </body>
 </html>
